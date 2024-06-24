@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #define MAX_PROCESSES 10
 
@@ -13,10 +11,11 @@ typedef struct
     int completion_time;
     int turnaround_time;
     int waiting_time;
+    int is_completed;
 } Process;
 
 void sort_by_arrival_time(Process proc[], int n);
-void fcfs(Process proc[], int n);
+void sjf_non_preemptive(Process proc[], int n);
 void display(Process proc[], int n);
 
 int main()
@@ -32,9 +31,10 @@ int main()
         proc[i].pid = i + 1;
         printf("Enter arrival time and burst time for process %d: ", i + 1);
         scanf("%d%d", &proc[i].arrival_time, &proc[i].burst_time);
+        proc[i].is_completed = 0;
     }
 
-    fcfs(proc, n);
+    sjf_non_preemptive(proc, n);
     display(proc, n);
 
     return 0;
@@ -57,21 +57,37 @@ void sort_by_arrival_time(Process proc[], int n)
     }
 }
 
-void fcfs(Process proc[], int n)
+void sjf_non_preemptive(Process proc[], int n)
 {
     sort_by_arrival_time(proc, n);
-    int time = 0;
-    for (int i = 0; i < n; i++)
+    int time = 0, completed = 0;
+    while (completed < n)
     {
-        if (time < proc[i].arrival_time)
+        int min_burst_idx = -1;
+        for (int i = 0; i < n; i++)
         {
-            time = proc[i].arrival_time;
+            if (proc[i].arrival_time <= time && !proc[i].is_completed)
+            {
+                if (min_burst_idx == -1 || proc[i].burst_time < proc[min_burst_idx].burst_time)
+                {
+                    min_burst_idx = i;
+                }
+            }
         }
-        proc[i].completion_time = time + proc[i].burst_time;
-        time = proc[i].completion_time;
 
-        proc[i].turnaround_time = proc[i].completion_time - proc[i].arrival_time;
-        proc[i].waiting_time = proc[i].turnaround_time - proc[i].burst_time;
+        if (min_burst_idx != -1)
+        {
+            time += proc[min_burst_idx].burst_time;
+            proc[min_burst_idx].completion_time = time;
+            proc[min_burst_idx].turnaround_time = proc[min_burst_idx].completion_time - proc[min_burst_idx].arrival_time;
+            proc[min_burst_idx].waiting_time = proc[min_burst_idx].turnaround_time - proc[min_burst_idx].burst_time;
+            proc[min_burst_idx].is_completed = 1;
+            completed++;
+        }
+        else
+        {
+            time++;
+        }
     }
 }
 
