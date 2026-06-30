@@ -83,6 +83,17 @@ void round_robin(Process proc[], int n, int quantum)
             {
                 time += quantum;
                 proc[idx].remaining_time -= quantum;
+                
+                for (int i = 0; i < n; i++)
+                {
+                    if (proc[i].arrival_time <= time && !in_queue[i] && proc[i].remaining_time > 0 && i != idx)
+                    {
+                        queue[rear] = i;
+                        rear = (rear + 1) % MAX_PROCESSES;
+                        in_queue[i] = true;
+                    }
+                }
+                
                 queue[rear] = idx;
                 rear = (rear + 1) % MAX_PROCESSES;
                 in_queue[idx] = true;
